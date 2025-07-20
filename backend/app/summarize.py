@@ -1,6 +1,7 @@
 import difflib
 import zipfile
 import io
+import requests
 
 def extract_diff(content: bytes, filename: str) -> str:
     if filename.endswith('.diff'):
@@ -17,7 +18,18 @@ def extract_diff(content: bytes, filename: str) -> str:
     return "Unsupported file type."
 
 def generate_summary(diff: str):
-    # Stub: Replace with LLM call (e.g., Ollama) if available
-    summary = f"Summary for diff:\n{diff[:200]}..."
-    suggestions = ["Suggestion 1", "Suggestion 2"]
-    return summary, suggestions 
+    prompt = f"Summarize the following git diff and provide suggestions for improvement:\n\n{diff}"
+    try:
+        print("starting")
+        response = requests.post(
+            "http://localhost:11434/api/generate",
+            json={"model": "phi3:mini", "prompt": prompt, "stream": False},
+            timeout=30
+        )
+        response.raise_for_status()
+        result = response.json()
+        summary = result.get("response", "")
+        suggestions = []  # Optionally parse suggestions from summary or add logic
+        return summary, suggestions
+    except Exception as e:
+        return f"LLM error: {e}", [] 

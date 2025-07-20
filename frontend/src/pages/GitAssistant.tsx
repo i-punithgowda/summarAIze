@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import api from '../api/axios';
 
 export const GitAssistant: React.FC = () => {
-    const [inputPath, setInputPath] = useState<string>("/home/puni/Documents/Personal Stuffs/projects/SummarAIze");
-    const [selectedProject, setSelectedProject] = useState<string>("");
+    const [inputPath, setInputPath] = useState<string>("/home/puni/Documents/Personal Stuffs/projects/SummarAIze"); const [selectedProject, setSelectedProject] = useState<string>("");
     const [projectName, setProjectName] = useState<string>("");
     const [branches, setBranches] = useState<string[]>([]);
     const [baseBranch, setBaseBranch] = useState<string>("");
@@ -11,6 +10,8 @@ export const GitAssistant: React.FC = () => {
     const [error, setError] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
     const [compareClicked, setCompareClicked] = useState<boolean>(false);
+    const [diff, setDiff] = useState<string>("");
+    const [compareLoading, setCompareLoading] = useState<boolean>(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -21,6 +22,7 @@ export const GitAssistant: React.FC = () => {
         setBaseBranch("");
         setCompareBranch("");
         setCompareClicked(false);
+        setDiff("");
         if (!inputPath.trim()) {
             setError("Please enter a repository path.");
             return;
@@ -47,10 +49,29 @@ export const GitAssistant: React.FC = () => {
         }
     };
 
-    const handleCompare = () => {
+    const handleCompare = async (e: React.FormEvent) => {
+        e.preventDefault();
         setCompareClicked(true);
-        // Here you would make the compare API call
-        // For now, just show a placeholder
+        setDiff("");
+        setError("");
+        setCompareLoading(true);
+        try {
+            const res = await api.post('/compare-branches', {
+                path: selectedProject,
+                base_branch: baseBranch,
+                compare_branch: compareBranch,
+            });
+            setDiff(res.data.diff);
+        } catch (err: any) {
+            setDiff("");
+            if (err.response && err.response.data && err.response.data.detail) {
+                setError(err.response.data.detail);
+            } else {
+                setError("Failed to compare branches. Please try again.");
+            }
+        } finally {
+            setCompareLoading(false);
+        }
     };
 
     return (
@@ -83,7 +104,7 @@ export const GitAssistant: React.FC = () => {
                 </div>
             )}
             {selectedProject && projectName && branches.length > 0 && (
-                <form className="flex flex-col gap-4 mt-4" onSubmit={e => { e.preventDefault(); handleCompare(); }}>
+                <form className="flex flex-col gap-4 mt-4" onSubmit={handleCompare}>
                     <label className="font-medium text-gray-700">Base Branch</label>
                     <select
                         className="border border-gray-300 rounded px-3 py-2 text-sm"
@@ -111,13 +132,17 @@ export const GitAssistant: React.FC = () => {
                     <button
                         type="submit"
                         className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition disabled:opacity-50"
-                        disabled={!baseBranch || !compareBranch || baseBranch === compareBranch}
+                        disabled={!baseBranch || !compareBranch || baseBranch === compareBranch || compareLoading}
                     >
-                        Compare Branches
+                        {compareLoading ? 'Comparing...' : 'Compare Branches'}
                     </button>
-                    {compareClicked && (
-                        <div className="text-blue-700 text-sm mt-2">(Comparison logic goes here...)</div>
+                    {compareClicked && diff && (
+                        <pre className="bg-gray-900 text-green-200 p-4 rounded overflow-x-auto text-xs mt-2 max-h-96 whitespace-pre-wrap">{diff}</pre>
                     )}
+                    {compareClicked && !diff && !compareLoading && !error && (
+                        <div className="text-blue-700 text-sm mt-2">No differences found.</div>
+                    )}
+                    {error && <div className="text-red-600 text-sm mt-1">{error}</div>}
                 </form>
             )}
         </div>
