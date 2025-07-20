@@ -20,11 +20,11 @@ def extract_diff(content: bytes, filename: str) -> str:
 def generate_summary(diff: str):
     prompt = f"Summarize the following git diff and provide suggestions for improvement:\n\n{diff}"
     try:
-        print("starting")
+        print("starting",diff)
         response = requests.post(
             "http://localhost:11434/api/generate",
             json={"model": "phi3:mini", "prompt": prompt, "stream": False},
-            timeout=30
+            timeout=1200
         )
         response.raise_for_status()
         result = response.json()

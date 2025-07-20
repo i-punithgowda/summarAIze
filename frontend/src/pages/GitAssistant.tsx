@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import api from '../api/axios';
 
 export const GitAssistant: React.FC = () => {
-    const [inputPath, setInputPath] = useState<string>("/home/puni/Documents/Personal Stuffs/projects/SummarAIze"); const [selectedProject, setSelectedProject] = useState<string>("");
+    const [inputPath, setInputPath] = useState<string>("");
+    const [selectedProject, setSelectedProject] = useState<string>("");
     const [projectName, setProjectName] = useState<string>("");
     const [branches, setBranches] = useState<string[]>([]);
     const [baseBranch, setBaseBranch] = useState<string>("");
@@ -10,7 +11,7 @@ export const GitAssistant: React.FC = () => {
     const [error, setError] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
     const [compareClicked, setCompareClicked] = useState<boolean>(false);
-    const [diff, setDiff] = useState<string>("");
+    const [files, setFiles] = useState<any[]>([]);
     const [compareLoading, setCompareLoading] = useState<boolean>(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -22,7 +23,7 @@ export const GitAssistant: React.FC = () => {
         setBaseBranch("");
         setCompareBranch("");
         setCompareClicked(false);
-        setDiff("");
+        setFiles([]);
         if (!inputPath.trim()) {
             setError("Please enter a repository path.");
             return;
@@ -52,7 +53,7 @@ export const GitAssistant: React.FC = () => {
     const handleCompare = async (e: React.FormEvent) => {
         e.preventDefault();
         setCompareClicked(true);
-        setDiff("");
+        setFiles([]);
         setError("");
         setCompareLoading(true);
         try {
@@ -61,9 +62,9 @@ export const GitAssistant: React.FC = () => {
                 base_branch: baseBranch,
                 compare_branch: compareBranch,
             });
-            setDiff(res.data.diff);
+            setFiles(res.data.files || []);
         } catch (err: any) {
-            setDiff("");
+            setFiles([]);
             if (err.response && err.response.data && err.response.data.detail) {
                 setError(err.response.data.detail);
             } else {
@@ -136,10 +137,40 @@ export const GitAssistant: React.FC = () => {
                     >
                         {compareLoading ? 'Comparing...' : 'Compare Branches'}
                     </button>
-                    {compareClicked && diff && (
-                        <pre className="bg-gray-900 text-green-200 p-4 rounded overflow-x-auto text-xs mt-2 max-h-96 whitespace-pre-wrap">{diff}</pre>
+                    {compareClicked && files.length > 0 && (
+                        <div className="mt-4 flex flex-col gap-6">
+                            {files.map((file, idx) => (
+                                <div key={idx} className="bg-gray-50 rounded p-4 shadow">
+                                    <div className="font-semibold text-blue-800 mb-2">{file.file}</div>
+                                    <div className="mb-2">
+                                        <span className="font-bold">Summary:</span>
+                                        <div className="text-gray-800 whitespace-pre-line">{file.summary}</div>
+                                    </div>
+                                    {file.suggestions && file.suggestions.length > 0 && (
+                                        <div className="mb-2">
+                                            <span className="font-bold">Suggestions:</span>
+                                            <ul className="list-disc ml-6">
+                                                {file.suggestions.map((s: string, i: number) => (
+                                                    <li key={i}>{s}</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+                                    <div className="grid grid-cols-2 gap-4 mt-2">
+                                        <div>
+                                            <div className="font-mono text-xs text-gray-500 mb-1">Old Content</div>
+                                            <pre className="bg-gray-200 p-2 rounded overflow-x-auto text-xs max-h-48">{file.old_content}</pre>
+                                        </div>
+                                        <div>
+                                            <div className="font-mono text-xs text-gray-500 mb-1">New Content</div>
+                                            <pre className="bg-green-100 p-2 rounded overflow-x-auto text-xs max-h-48">{file.new_content}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     )}
-                    {compareClicked && !diff && !compareLoading && !error && (
+                    {compareClicked && files.length === 0 && !compareLoading && !error && (
                         <div className="text-blue-700 text-sm mt-2">No differences found.</div>
                     )}
                     {error && <div className="text-red-600 text-sm mt-1">{error}</div>}
