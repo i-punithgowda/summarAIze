@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import api from '../api/axios';
 
 export const GitAssistant: React.FC = () => {
-    const [inputPath, setInputPath] = useState<string>("");
+    const [inputPath, setInputPath] = useState<string>("/home/puni/Documents/Personal Stuffs/projects/SummarAIze");
     const [selectedProject, setSelectedProject] = useState<string>("");
     const [projectName, setProjectName] = useState<string>("");
     const [branches, setBranches] = useState<string[]>([]);
