@@ -1,17 +1,14 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export const NavBar: React.FC = () => {
-    const location = useLocation();
     return (
-        <nav className="bg-gray-800 text-white px-4 py-3 flex gap-6 items-center">
-            <span className="font-bold text-lg">SummarAIze</span>
-            <Link
-                to="/git-assistant"
-                className={`hover:underline ${location.pathname === "/git-assistant" ? "underline font-semibold" : ""}`}
-            >
-                Git Assistant
-            </Link>
+        <nav className="bg-gradient-to-r from-gray-800 to-gray-900 text-white px-6 py-4 shadow-lg">
+            <div className="max-w-7xl mx-auto flex gap-8 items-center">
+                <Link to="/" className="font-bold text-xl hover:text-blue-400 transition">
+                    🚀 SummarAIze - Git Assistant
+                </Link>
+            </div>
         </nav>
     );
-}; 
+};
