@@ -2,5 +2,7 @@ import React from "react";
 
 type Props = { diff: string };
 export const DiffViewer: React.FC<Props> = ({ diff }: Props) => (
-    <pre className="bg-gray-900 text-green-200 p-4 rounded overflow-x-auto">{diff}</pre>
-); 
+    <pre className="overflow-x-auto rounded-2xl border border-stone-200 bg-stone-950 p-5 font-mono text-[13px] leading-relaxed text-emerald-200">
+        {diff}
+    </pre>
+);

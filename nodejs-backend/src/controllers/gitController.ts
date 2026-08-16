@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import gitService from '../services/gitService';
-import geminiService from '../services/geminiService';
+import geminiService, { GeminiRateLimitError } from '../services/geminiService';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -110,6 +110,9 @@ export const summarizePR = async (req: Request, res: Response) => {
         // Clean up file if it exists
         if (req.file && fs.existsSync(req.file.path)) {
             fs.unlinkSync(req.file.path);
+        }
+        if (error instanceof GeminiRateLimitError) {
+            return res.status(429).json({ detail: error.message });
         }
         res.status(500).json({ detail: `Error processing file: ${error.message}` });
     }
